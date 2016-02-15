@@ -34,6 +34,8 @@ import re
 import hashlib
 import sqlite3
 import os
+import sys
+from os.path import abspath, dirname, join as path_join
 
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash, jsonify
@@ -45,13 +47,14 @@ except ImportError:
 
 # configuration
 config = configparser.SafeConfigParser()
-config.readfp(open('lwp.conf'))
+CWD = dirname(abspath(__file__))
+config.readfp(open(path_join(CWD, 'lwp.conf')))
 
 SECRET_KEY = '\xb13\xb6\xfb+Z\xe8\xd1n\x80\x9c\xe7KM' \
              '\x1c\xc1\xa7\xf8\xbeY\x9a\xfa<.'
 
 DEBUG = config.getboolean('global', 'debug')
-DATABASE = config.get('database', 'file')
+DATABASE = path_join(CWD, config.get('database', 'file'))
 ADDRESS = config.get('global', 'address')
 PORT = int(config.get('global', 'port'))
 
@@ -922,4 +925,18 @@ def check_session_limit():
             session['last_activity'] = now
 
 if __name__ == '__main__':
+    #  Fork once
+    if os.fork() != 0:
+        os._exit(0)
+    # Create new session
+    os.setsid()
+    if os.fork() != 0:
+        os._exit(0)
+    fd = os.open('/dev/null', os.O_RDONLY)
+    os.dup2(fd, sys.__stdin__.fileno())
+    os.close(fd)
+
+    with open('/var/run/lwp.pid', 'w') as pid_fo:
+        pid_fo.write(str(os.getpid()) + '\n')
+
     app.run(host=app.config['ADDRESS'], port=app.config['PORT'])

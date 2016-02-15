@@ -29,6 +29,7 @@
 import sys
 sys.path.append('../')
 from lxclite import exists, stopped, ContainerDoesntExists
+from os.path import abspath, dirname, join as path_join
 
 import os
 import platform
@@ -48,6 +49,7 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
+ROOT_DIR = path_join(dirname(abspath(__file__)), "../")
 
 class CalledProcessError(Exception):
     pass
@@ -254,12 +256,13 @@ def check_version():
     '''
     returns latest LWP version (dict with current and latest)
     '''
-    f = open('version')
+    f = open(path_join(ROOT_DIR, 'version'))
     current = float(f.read())
     f.close()
-    latest = float(urlopen('http://lxc-webpanel.github.com/version').read())
-    return {'current': current,
-            'latest': latest}
+    # latest = float(urlopen('http://lxc-webpanel.github.com/version').read())
+    # return {'current': current,
+    #         'latest': latest}
+    return {'current': current}
 
 
 def get_net_settings():
@@ -458,7 +461,8 @@ def net_restart():
     '''
     restarts LXC networking
     '''
-    cmd = ['/usr/sbin/service lxc-net restart']
+    # cmd = ['/usr/sbin/service lxc-net restart']
+    cmd = ['/bin/systemctl restart network.service']
     try:
         subprocess.check_call(cmd, shell=True)
         return 0
