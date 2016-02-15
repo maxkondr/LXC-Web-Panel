@@ -1,0 +1,16 @@
+[Unit]
+Description=LXC Web Panel
+After=network.target
+
+[Service]
+Type=forking
+User=root
+PIDFile=/var/run/lwp.pid
+ExecStart=/usr/bin/python /srv/lwp/lwp.py
+Restart=on-failure
+KillMode=process
+RestartSec=10
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
